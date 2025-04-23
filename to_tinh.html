@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Confession Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#5D5CDE",
+              love: "#FF6B95",
+            },
+            animation: {
+              "bounce-slow": "bounce 3s infinite",
+              "pulse-slow": "pulse 3s infinite",
+              "spin-slow": "spin 8s linear infinite",
+            },
+          },
+        },
+        darkMode: "class",
+      };
+    </script>
+    <style>
+      @keyframes heartbeat {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.1);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      .heart-beat {
+        animation: heartbeat 1s infinite;
+      }
+
+      .flying-hearts {
+        position: absolute;
+        font-size: 24px;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      @keyframes flyUpAndFade {
+        0% {
+          transform: translateY(0);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(-100px);
+          opacity: 0;
+        }
+      }
+
+      .bg-hearts {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        overflow: hidden;
+        z-index: -1;
+        pointer-events: none;
+      }
+
+      .heart {
+        position: absolute;
+        font-size: 14px;
+        color: rgba(255, 107, 149, 0.6);
+        user-select: none;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-gradient-to-br from-pink-100 to-purple-100 dark:from-pink-900 dark:to-purple-900 min-h-screen transition-colors duration-300 overflow-x-hidden"
+  >
+    <!-- Background Hearts -->
+    <div class="bg-hearts" id="bg-hearts"></div>
+
+    <!-- Audio Player (Hidden) -->
+    <audio id="bgMusic" loop>
+      <source
+        src="https://cdn.jsdelivr.net/gh/rafaeldejongh/html5-audio-player@master/media/examples/Mosquito.mp3"
+        type="audio/mp3"
+      />
+      Your browser does not support the audio element.
+    </audio>
+
+    <div
+      id="volume-control"
+      class="fixed top-4 right-4 z-10 text-2xl cursor-pointer"
+    >
+      <div id="volume-on" class="text-love">🔊</div>
+      <div id="volume-off" class="hidden text-love">🔇</div>
+    </div>
+
+    <div
+      id="theme-toggle"
+      class="fixed top-4 left-4 z-10 text-2xl cursor-pointer text-love"
+    >
+      <div id="dark-toggle" class="block dark:hidden">🌙</div>
+      <div id="light-toggle" class="hidden dark:block">☀️</div>
+    </div>
+
+    <div class="container mx-auto px-4 py-12 max-w-3xl relative">
+      <!-- Main Content -->
+      <div
+        id="confession-screen"
+        class="flex flex-col items-center justify-center"
+      >
+        <div class="text-center mb-8">
+          <h1
+            class="text-4xl font-bold text-love dark:text-pink-300 mb-4 animate-pulse-slow"
+          >
+            Em Có Một Điều Muốn Nói...
+          </h1>
+          <p
+            class="text-xl font-bold text-red-500 dark:text-red-400 mb-6 animate-bounce-slow bg-yellow-100 dark:bg-yellow-900 py-2 px-4 rounded-full inline-block shadow-md"
+          >
+            THOÁT RA LÀ ĐỒNG Ý NHÓ
+          </p>
+          <div
+            class="text-gray-700 dark:text-gray-300 text-lg max-w-lg mx-auto relative"
+          >
+            <p class="mb-4">
+              Em đã nhìn thấy anh/chị từ rất lâu, và em không thể kìm lòng được
+              nữa. Em thật sự rất yêu anh/chị đến phát điên.
+            </p>
+            <p class="font-bold">Anh/chị có muốn làm người yêu của em không?</p>
+          </div>
+        </div>
+
+        <div class="mb-8 relative transition-all duration-500 group">
+          <img
+            src="https://pfst.cf2.poecdn.net/base/image/1021615c9c1d5c37c63f2a221a7cca7c7c40efd47e0913a9df6fca25ae02cd0b?w=309&h=153"
+            alt="Cute cat"
+            class="w-56 h-auto mx-auto heart-beat rounded-xl shadow-lg"
+          />
+          <div
+            class="absolute -top-12 -right-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white dark:bg-gray-800 p-3 rounded-xl shadow-lg"
+          >
+            <p class="text-love text-sm font-medium">
+              Em thật sự rất yêu anh/chị! ❤️
+            </p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap justify-center gap-4 mb-12">
+          <button
+            id="yes-btn"
+            class="yes-btn bg-love hover:bg-pink-600 text-white font-bold py-3 px-12 rounded-full shadow-lg hover:shadow-xl transition transform hover:scale-105 text-lg"
+          >
+            Đồng Ý
+          </button>
+          <button
+            id="no-btn"
+            class="bg-gray-400 text-white font-bold py-3 px-12 rounded-full shadow-lg transition text-lg"
+          >
+            Từ Chối
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mt-4">
+          <button
+            class="yes-btn bg-pink-400 hover:bg-pink-500 text-white py-2 px-4 rounded-lg shadow transition"
+          >
+            Chắc Chắn Rồi ❤️
+          </button>
+          <button
+            class="yes-btn bg-purple-400 hover:bg-purple-500 text-white py-2 px-4 rounded-lg shadow transition"
+          >
+            Tất Nhiên Là Có 💕
+          </button>
+          <button
+            class="yes-btn bg-red-400 hover:bg-red-500 text-white py-2 px-4 rounded-lg shadow transition"
+          >
+            Em Đồng Ý! 💘
+          </button>
+          <button
+            class="yes-btn bg-blue-400 hover:bg-blue-500 text-white py-2 px-4 rounded-lg shadow transition"
+          >
+            Yes! I Do 💖
+          </button>
+          <button
+            class="yes-btn bg-green-400 hover:bg-green-500 text-white py-2 px-4 rounded-lg shadow transition"
+          >
+            Yêu Em Nhiều 😍
+          </button>
+          <button
+            class="yes-btn bg-yellow-400 hover:bg-yellow-500 text-white py-2 px-4 rounded-lg shadow transition"
+          >
+            OK Luôn 🥰
+          </button>
+        </div>
+      </div>
+
+      <!-- Success Screen (Hidden initially) -->
+      <div id="success-screen" class="hidden animate-pulse-slow">
+        <div class="text-center mb-8">
+          <h1 class="text-4xl font-bold text-love dark:text-pink-300 mb-4">
+            Em Biết Mà! ❤️
+          </h1>
+          <p class="text-xl text-gray-700 dark:text-gray-300">
+            Em rất hạnh phúc vì anh/chị đã đồng ý!
+          </p>
+          <p class="text-gray-600 dark:text-gray-400 mt-2">
+            Hãy để lại thông tin để chúng ta có thể liên lạc nhé!
+          </p>
+        </div>
+
+        <div class="flex justify-center mb-8">
+          <img
+            src="https://pfst.cf2.poecdn.net/base/image/1021615c9c1d5c37c63f2a221a7cca7c7c40efd47e0913a9df6fca25ae02cd0b?w=309&h=153"
+            alt="Cute cat"
+            class="w-40 h-auto mx-auto animate-bounce-slow rounded-xl shadow-lg"
+          />
+        </div>
+
+        <form
+          id="contact-form"
+          action="https://formspree.io/f/mjkwvkne"
+          method="POST"
+          class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg max-w-md mx-auto"
+        >
+          <div class="mb-4">
+            <label
+              for="name"
+              class="block text-gray-700 dark:text-gray-300 font-medium mb-2"
+              >Tên của anh/chị</label
+            >
+            <input
+              type="text"
+              id="name"
+              name="name"
+              placeholder="Nhập tên của anh/chị"
+              required
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-love dark:bg-gray-700 dark:text-white text-base"
+            />
+          </div>
+
+          <div class="mb-4">
+            <label
+              for="contact"
+              class="block text-gray-700 dark:text-gray-300 font-medium mb-2"
+              >Liên hệ (Facebook, Zalo, ...)</label
+            >
+            <input
+              type="text"
+              id="contact"
+              name="contact"
+              placeholder="Nhập thông tin liên hệ"
+              required
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-love dark:bg-gray-700 dark:text-white text-base"
+            />
+          </div>
+
+          <div class="mb-4">
+            <label
+              for="message"
+              class="block text-gray-700 dark:text-gray-300 font-medium mb-2"
+              >Lời nhắn cho em</label
+            >
+            <textarea
+              id="message"
+              name="message"
+              rows="3"
+              placeholder="Anh/chị muốn nói gì với em..."
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-love dark:bg-gray-700 dark:text-white text-base"
+            ></textarea>
+          </div>
+
+          <!-- Thêm trường ẩn để hiển thị tiêu đề email rõ ràng hơn -->
+          <input
+            type="hidden"
+            name="_subject"
+            value="💖 Có người đã đồng ý lời tỏ tình của bạn! 💖"
+          />
+
+          <div class="flex justify-center">
+            <button
+              type="submit"
+              id="submit-btn"
+              class="bg-love hover:bg-pink-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:shadow-xl transition transform hover:scale-105 text-lg"
+            >
+              Gửi Cho Em ❤️
+            </button>
+          </div>
+        </form>
+
+        <div
+          id="success-message"
+          class="hidden mt-8 text-center text-green-600 dark:text-green-400 font-bold text-lg"
+        >
+          Cảm ơn anh/chị! Em sẽ liên hệ với anh/chị sớm nhất có thể! ❤️
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Check for dark mode preference
+      if (
+        window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches
+      ) {
+        document.documentElement.classList.add("dark");
+      }
+
+      // Listen for changes in color scheme preference
+      window
+        .matchMedia("(prefers-color-scheme: dark)")
+        .addEventListener("change", (event) => {
+          if (event.matches) {
+            document.documentElement.classList.add("dark");
+          } else {
+            document.documentElement.classList.remove("dark");
+          }
+        });
+
+      // Theme toggle
+      document.getElementById("theme-toggle").addEventListener("click", () => {
+        document.documentElement.classList.toggle("dark");
+      });
+
+      document.addEventListener("DOMContentLoaded", function () {
+        // References to elements
+        const noBtn = document.getElementById("no-btn");
+        const yesBtns = document.querySelectorAll(".yes-btn");
+        const confessionScreen = document.getElementById("confession-screen");
+        const successScreen = document.getElementById("success-screen");
+        const contactForm = document.getElementById("contact-form");
+        const successMessage = document.getElementById("success-message");
+        const bgMusic = document.getElementById("bgMusic");
+        const volumeOn = document.getElementById("volume-on");
+        const volumeOff = document.getElementById("volume-off");
+
+        // Create background hearts
+        const bgHearts = document.getElementById("bg-hearts");
+        for (let i = 0; i < 50; i++) {
+          createBackgroundHeart();
+        }
+
+        // Sound controls
+        let isMusicPlaying = false;
+
+        volumeOn.addEventListener("click", function () {
+          bgMusic.pause();
+          volumeOn.classList.add("hidden");
+          volumeOff.classList.remove("hidden");
+          isMusicPlaying = false;
+        });
+
+        volumeOff.addEventListener("click", function () {
+          bgMusic.play();
+          volumeOff.classList.add("hidden");
+          volumeOn.classList.remove("hidden");
+          isMusicPlaying = true;
+        });
+
+        // Try to play music on first interaction
+        document.body.addEventListener(
+          "click",
+          function initialClick() {
+            if (!isMusicPlaying) {
+              bgMusic
+                .play()
+                .then(() => {
+                  isMusicPlaying = true;
+                })
+                .catch((error) => {
+                  console.log("Audio play failed:", error);
+                });
+            }
+            document.body.removeEventListener("click", initialClick);
+          },
+          { once: true }
+        );
+
+        // Move "No" button away from cursor
+        noBtn.addEventListener("mouseover", function (e) {
+          // Calculate a new position
+          const maxX = window.innerWidth - this.offsetWidth - 100;
+          const maxY = window.innerHeight - this.offsetHeight - 100;
+
+          const randomX = Math.floor(Math.random() * maxX);
+          const randomY = Math.floor(Math.random() * maxY);
+
+          // Apply new position
+          this.style.position = "fixed";
+          this.style.left = randomX + "px";
+          this.style.top = randomY + "px";
+
+          // Add floating hearts
+          createFloatingHearts(e.clientX, e.clientY);
+        });
+
+        // Attempt to handle touch on no button for mobile
+        noBtn.addEventListener("touchstart", function (e) {
+          e.preventDefault();
+
+          const touch = e.touches[0];
+
+          // Calculate a new position
+          const maxX = window.innerWidth - this.offsetWidth - 50;
+          const maxY = window.innerHeight - this.offsetHeight - 50;
+
+          const randomX = Math.floor(Math.random() * maxX);
+          const randomY = Math.floor(Math.random() * maxY);
+
+          // Apply new position
+          this.style.position = "fixed";
+          this.style.left = randomX + "px";
+          this.style.top = randomY + "px";
+
+          // Add floating hearts
+          createFloatingHearts(touch.clientX, touch.clientY);
+        });
+
+        // For all "Yes" buttons
+        yesBtns.forEach((btn) => {
+          btn.addEventListener("click", function () {
+            // Show celebration
+            showCelebration();
+
+            // Hide confession screen and show success screen
+            confessionScreen.classList.add("hidden");
+            successScreen.classList.remove("hidden");
+          });
+        });
+
+        // Handle form submission
+        contactForm.addEventListener("submit", function (e) {
+          // No need for e.preventDefault() as we want the form to submit naturally to Formspree
+
+          // Get form values for validation
+          const name = document.getElementById("name").value;
+          const contact = document.getElementById("contact").value;
+
+          // Simple validation
+          if (!name || !contact) {
+            e.preventDefault(); // Prevent submission if validation fails
+            alert("Vui lòng điền đầy đủ thông tin!");
+            return;
+          }
+
+          // Show loading state during form submission
+          const submitBtn = document.getElementById("submit-btn");
+          submitBtn.innerHTML =
+            '<span class="animate-pulse">Đang gửi...</span>';
+          submitBtn.disabled = true;
+
+          // We'll show success message after the form is submitted
+          // This will execute when submission completes
+          setTimeout(() => {
+            contactForm.classList.add("hidden");
+            successMessage.classList.remove("hidden");
+
+            // More confetti!
+            showCelebration();
+          }, 2000);
+        });
+
+        // Functions for hearts and animations
+        function createFloatingHearts(x, y) {
+          for (let i = 0; i < 5; i++) {
+            const heart = document.createElement("div");
+            heart.innerHTML = "❤️";
+            heart.classList.add("flying-hearts");
+            heart.style.left = x - 10 + "px";
+            heart.style.top = y - 10 + "px";
+            heart.style.animation = "flyUpAndFade 1s forwards";
+            heart.style.animationDelay = i * 0.1 + "s";
+
+            document.body.appendChild(heart);
+
+            // Remove after animation completes
+            setTimeout(() => {
+              document.body.removeChild(heart);
+            }, 1100);
+          }
+        }
+
+        function createBackgroundHeart() {
+          const heart = document.createElement("div");
+          heart.innerHTML = "❤";
+          heart.classList.add("heart");
+
+          // Random position
+          const x = Math.floor(Math.random() * window.innerWidth);
+          const y = Math.floor(Math.random() * window.innerHeight);
+          heart.style.left = x + "px";
+          heart.style.top = y + "px";
+
+          // Random size
+          const size = Math.floor(Math.random() * 20) + 10;
+          heart.style.fontSize = size + "px";
+
+          // Random opacity
+          const opacity = Math.random() * 0.5 + 0.1;
+          heart.style.opacity = opacity;
+
+          // Random animation
+          const duration = Math.floor(Math.random() * 10) + 10;
+          heart.style.animation = `pulse ${duration}s infinite`;
+
+          bgHearts.appendChild(heart);
+        }
+
+        function showCelebration() {
+          // Trigger confetti
+          confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ["#FF6B95", "#FFB6C1", "#5D5CDE", "#FFC0CB", "#FF69B4"],
+          });
+
+          // Repeat confetti
+          setTimeout(() => {
+            confetti({
+              particleCount: 100,
+              angle: 60,
+              spread: 55,
+              origin: { x: 0 },
+              colors: ["#FF6B95", "#FFB6C1", "#5D5CDE", "#FFC0CB", "#FF69B4"],
+            });
+          }, 500);
+
+          setTimeout(() => {
+            confetti({
+              particleCount: 100,
+              angle: 120,
+              spread: 55,
+              origin: { x: 1 },
+              colors: ["#FF6B95", "#FFB6C1", "#5D5CDE", "#FFC0CB", "#FF69B4"],
+            });
+          }, 1000);
+        }
+      });
+    </script>
+  </body>
+</html>
